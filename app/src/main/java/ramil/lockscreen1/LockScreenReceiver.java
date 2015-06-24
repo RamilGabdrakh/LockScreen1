@@ -8,9 +8,9 @@ import android.util.Log;
 public class LockScreenReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.e("mytag", "onReceive");
-        String action = intent.getAction();
 
+        String action = intent.getAction();
+        Log.e("mytag", "onReceive  " + action);
         //If the screen was just turned on or it just booted up, start your Lock Activity
         if(action.equals(Intent.ACTION_SCREEN_OFF) || action.equals(Intent.ACTION_BOOT_COMPLETED))
         {
