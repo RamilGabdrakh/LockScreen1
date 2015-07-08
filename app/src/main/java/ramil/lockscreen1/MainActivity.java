@@ -5,12 +5,15 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Browser;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.DragEvent;
@@ -63,13 +66,46 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    public void getBrowserHist()  {
+//        Cursor mCur = managedQuery(Browser.BOOKMARKS_URI,
+//                Browser.SEARCHES_PROJECTION, null, null, null);
+//        mCur.moveToFirst();
+//        if (mCur.moveToFirst() && mCur.getCount() > 0) {
+//            while (mCur.isAfterLast() == false) {
+//                Log.v("mytag","titleIdx " + mCur
+//                        .getString(Browser.HISTORY_PROJECTION_TITLE_INDEX));
+//                Log.v("mytag","urlIdx " + mCur
+//                        .getString(Browser.HISTORY_PROJECTION_URL_INDEX));
+//
+//                mCur.moveToNext();
+//            }
+//        }
+
+
+
+        ContentResolver resolver = this.getContentResolver();
+        Cursor cursor = resolver.query(Browser.SEARCHES_URI, Browser.SEARCHES_PROJECTION, null, null, null);
+        cursor.moveToFirst();
+        if (cursor.moveToFirst() && cursor.getCount() > 0) {
+            while (cursor.isAfterLast() == false) {
+
+                Log.v("mytag", "SEARCH_INDEX " + cursor.getString(Browser.SEARCHES_PROJECTION_SEARCH_INDEX));
+                Log.v("mytag", "DATE_INDEX " + cursor.getLong(Browser.SEARCHES_PROJECTION_DATE_INDEX));
+
+                cursor.moveToNext();
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        getBrowserHist();
+
         //Set up our Lockscreen
-        makeFullScreen();
+        //makeFullScreen();
         startService(new Intent(this, LockScreenService.class));
 
         deviceManger = (DevicePolicyManager) getSystemService(
