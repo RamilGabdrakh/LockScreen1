@@ -1,177 +1,141 @@
 package ramil.lockscreen1;
-
-import android.app.Activity;
-import android.app.admin.DevicePolicyManager;
-import android.content.ClipData;
-import android.content.ClipDescription;
-import android.content.ComponentName;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.os.Build;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Browser;
-import android.support.v7.app.AlertDialog;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
-import android.view.DragEvent;
-import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
 
-public class MainActivity extends Activity {
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState;
 
-    HomeWatcher mHomeWatcher;
-    DevicePolicyManager deviceManger;
-    ComponentName compName;
+public class MainActivity extends ActionBarActivity {
+    private static final String TAG = "DemoActivity";
 
-    static final int RESULT_ENABLE = 1;
-
-    public void lock() {
-
-        mHomeWatcher.stopWatch();
-        finish();
-        startActivity(new Intent(MainActivity.this, MainActivity.class));
-
-//        boolean active = deviceManger.isAdminActive(compName);
-//        if (active) {
-//            deviceManger.lockNow();
-//        } else {
-//            Intent intent = new Intent(DevicePolicyManager
-//                    .ACTION_ADD_DEVICE_ADMIN);
-//            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN,
-//                    compName);
-//            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-//                    "Additional text explaining why this needs to be added.");
-//            startActivityForResult(intent, RESULT_ENABLE);
-//        }
-    }
-
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case RESULT_ENABLE:
-                if (resultCode == Activity.RESULT_OK) {
-                    Log.e("mytag", "Admin enabled!");
-                    deviceManger.lockNow();
-                } else {
-                    Log.e("mytag", "Admin enable FAILED!");
-                }
-                return;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    public void getBrowserHist()  {
-//        Cursor mCur = managedQuery(Browser.BOOKMARKS_URI,
-//                Browser.SEARCHES_PROJECTION, null, null, null);
-//        mCur.moveToFirst();
-//        if (mCur.moveToFirst() && mCur.getCount() > 0) {
-//            while (mCur.isAfterLast() == false) {
-//                Log.v("mytag","titleIdx " + mCur
-//                        .getString(Browser.HISTORY_PROJECTION_TITLE_INDEX));
-//                Log.v("mytag","urlIdx " + mCur
-//                        .getString(Browser.HISTORY_PROJECTION_URL_INDEX));
-//
-//                mCur.moveToNext();
-//            }
-//        }
-
-
-
-        ContentResolver resolver = this.getContentResolver();
-        Cursor cursor = resolver.query(Browser.SEARCHES_URI, Browser.SEARCHES_PROJECTION, null, null, null);
-        cursor.moveToFirst();
-        if (cursor.moveToFirst() && cursor.getCount() > 0) {
-            while (cursor.isAfterLast() == false) {
-
-                Log.v("mytag", "SEARCH_INDEX " + cursor.getString(Browser.SEARCHES_PROJECTION_SEARCH_INDEX));
-                Log.v("mytag", "DATE_INDEX " + cursor.getLong(Browser.SEARCHES_PROJECTION_DATE_INDEX));
-
-                cursor.moveToNext();
-            }
-        }
-    }
+    private SlidingUpPanelLayout mLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-        getBrowserHist();
-
-        //Set up our Lockscreen
-        //makeFullScreen();
-        startService(new Intent(this, LockScreenService.class));
-
-        deviceManger = (DevicePolicyManager) getSystemService(
-                Context.DEVICE_POLICY_SERVICE);
-        compName = new ComponentName(this, MyAdmin.class);
-
         setContentView(R.layout.activity_main);
 
-        mHomeWatcher = new HomeWatcher(this);
-        mHomeWatcher.setOnHomePressedListener(new OnHomePressedListener() {
+        setSupportActionBar((Toolbar)findViewById(R.id.main_toolbar));
+
+
+        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout.setPanelSlideListener(new PanelSlideListener() {
             @Override
-            public void onHomePressed() {
-                Log.e("mytag", "onHomePressed");
-                lock();
+            public void onPanelSlide(View panel, float slideOffset) {
+                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
             }
 
             @Override
-            public void onHomeLongPressed() {
-                Log.e("mytag", "onHomeLongPressed");
-                lock();
+            public void onPanelExpanded(View panel) {
+                Log.i(TAG, "onPanelExpanded");
+
+            }
+
+            @Override
+            public void onPanelCollapsed(View panel) {
+                Log.i(TAG, "onPanelCollapsed");
+
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {
+                Log.i(TAG, "onPanelAnchored");
+            }
+
+            @Override
+            public void onPanelHidden(View panel) {
+                Log.i(TAG, "onPanelHidden");
             }
         });
-        mHomeWatcher.startWatch();
+
+        TextView t = (TextView) findViewById(R.id.name);
+        t.setText(Html.fromHtml("Hello"));
+        Button f = (Button) findViewById(R.id.follow);
+        f.setText(Html.fromHtml("Follow"));
+        f.setMovementMethod(LinkMovementMethod.getInstance());
+        f.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse("http://www.twitter.com/umanoapp"));
+                startActivity(i);
+            }
+        });
     }
 
-    /**
-     * A simple method that sets the screen to fullscreen.  It removes the Notifications bar,
-     * the Actionbar and the virtual keys (if they are on the phone)
-     */
-    public void makeFullScreen() {
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        if (Build.VERSION.SDK_INT < 19) { //View.SYSTEM_UI_FLAG_IMMERSIVE is only on API 19+
-            this.getWindow().getDecorView()
-                    .setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        } else {
-            this.getWindow().getDecorView()
-                    .setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.demo, menu);
+        MenuItem item = menu.findItem(R.id.action_toggle);
+        if (mLayout != null) {
+            if (mLayout.getPanelState() == PanelState.HIDDEN) {
+                item.setTitle("показать");
+            } else {
+                item.setTitle("скрыть");
+            }
         }
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_toggle: {
+                if (mLayout != null) {
+                    if (mLayout.getPanelState() != PanelState.HIDDEN) {
+                        mLayout.setPanelState(PanelState.HIDDEN);
+                        item.setTitle("показать");
+                    } else {
+                        mLayout.setPanelState(PanelState.COLLAPSED);
+                        item.setTitle("скрыть");
+                    }
+                }
+                return true;
+            }
+            case R.id.action_anchor: {
+                if (mLayout != null) {
+                    if (mLayout.getAnchorPoint() == 1.0f) {
+                        mLayout.setAnchorPoint(0.7f);
+                        mLayout.setPanelState(PanelState.ANCHORED);
+                        item.setTitle("disable");
+                    } else {
+                        mLayout.setAnchorPoint(1.0f);
+                        mLayout.setPanelState(PanelState.COLLAPSED);
+                        item.setTitle("enable");
+                    }
+                }
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onBackPressed() {
-        return; //Do nothing!
+        if (mLayout != null &&
+                (mLayout.getPanelState() == PanelState.EXPANDED || mLayout.getPanelState() == PanelState.ANCHORED)) {
+            mLayout.setPanelState(PanelState.COLLAPSED);
+        } else {
+            super.onBackPressed();
+        }
     }
-
-    public void unlockScreen(View view) {
-        //Instead of using finish(), this totally destroys the process
-        //android.os.Process.killProcess(android.os.Process.myPid());
-        //finish();
-
-        new AlertDialog.Builder(this)
-                .setTitle("Delete entry")
-                .setMessage("Are you sure you want to delete this entry?")
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                })
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // do nothing
-                    }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-    }
-
 }
